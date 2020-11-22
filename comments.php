@@ -2,10 +2,12 @@
 /**
  * The template for displaying comments.
  *
- * The area of the page that contains both current comments
+ * This is the template that displays the area of the page that contains both the current comments
  * and the comment form.
  *
- * @package activello
+ * @link https://codex.wordpress.org/Template_Hierarchy
+ *
+ * @package Shapely
  */
 
 /*
@@ -18,99 +20,71 @@ if ( post_password_required() ) {
 }
 ?>
 
-<div id="comments" class="comments-area">
+<div id="comments" class="comments-area comments  nolist">
+	<?php
+	// You can start editing here -- including this comment!
+	if ( have_comments() ) : ?>
+		<h5 class="comments-title">
+			<?php
+				printf( // WPCS: XSS OK.
+					esc_html( _nx( '1 COMMENT', '%1$s COMMENTS', get_comments_number(), 'comments title', 'shapely' ) ),
+					number_format_i18n( get_comments_number() )
+				);
+			?>
+		</h5>
 
-	<?php // You can start editing here -- including this comment! ?>
+		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : // Are there comments to navigate through? ?>
+		<nav id="comment-nav-above" class="navigation comment-navigation" role="navigation">
+			<h2 class="screen-reader-text"><?php esc_html_e( 'Comment navigation', 'shapely' ); ?></h2>
+			<div class="nav-links">
 
-	<?php if ( have_comments() ) : ?>
-		<h2 class="comments-title">
-		<?php
-		$comments_number = get_comments_number();
-		if ( '1' === $comments_number ) {
-			/* translators: %s: post title */
-			printf( _x( 'One Reply to &ldquo;%s&rdquo;', 'comments title', 'activello' ), get_the_title() );
-		} else {
-			printf(
-				/* translators: 1: number of comments, 2: post title */
-				_nx(
-					'%1$s Reply to &ldquo;%2$s&rdquo;',
-					'%1$s Replies to &ldquo;%2$s&rdquo;',
-					$comments_number,
-					'comments title',
-					'activello'
-				),
-				number_format_i18n( $comments_number ),
-				get_the_title()
-			);
-		}
-		?>
-		</h2>
+				<div class="nav-previous"><?php previous_comments_link( esc_html__( 'Older Comments', 'shapely' ) ); ?></div>
+				<div class="nav-next"><?php next_comments_link( esc_html__( 'Newer Comments', 'shapely' ) ); ?></div>
 
-		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : // are there comments to navigate through ?>
-		<nav id="comment-nav-above" class="comment-navigation" role="navigation">
-			<h1 class="screen-reader-text"><?php esc_html_e( 'Comment navigation', 'activello' ); ?></h1>
-			<div class="nav-previous"><?php previous_comments_link( esc_html__( '&larr; Older Comments', 'activello' ) ); ?></div>
-			<div class="nav-next"><?php next_comments_link( esc_html__( 'Newer Comments &rarr;', 'activello' ) ); ?></div>
+			</div><!-- .nav-links -->
 		</nav><!-- #comment-nav-above -->
-		<?php endif; // check for comment navigation ?>
+		<?php endif; // Check for comment navigation. ?>
 
-		<ol class="comment-list">
+        <?php add_filter('comment_reply_link', 'shapely_reply_link_class'); ?>
+		<ul class="comments-list">
 			<?php
 				wp_list_comments( array(
 					'style'      => 'ol',
 					'short_ping' => true,
-					'avatar_size' => 80,
-					'callback'   => 'activello_cb_comment',
+					'avatar_size'=> 75,
+					'callback'   => 'shapely_cb_comment'
 				) );
 			?>
-		</ol><!-- .comment-list -->
+		</ul><!-- .comment-list -->
+        <?php remove_filter('comment_reply_link', 'shapely_reply_link_class'); ?>
 
-		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : // are there comments to navigate through ?>
-		<nav id="comment-nav-below" class="comment-navigation" role="navigation">
-			<h1 class="screen-reader-text"><?php esc_html_e( 'Comment navigation', 'activello' ); ?></h1>
-			<div class="nav-previous"><?php previous_comments_link( esc_html__( '&larr; Older Comments', 'activello' ) ); ?></div>
-			<div class="nav-next"><?php next_comments_link( esc_html__( 'Newer Comments &rarr;', 'activello' ) ); ?></div>
+
+		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : // Are there comments to navigate through? ?>
+		<nav id="comment-nav-below" class="navigation comment-navigation" role="navigation">
+			<h2 class="screen-reader-text"><?php esc_html_e( 'Comment navigation', 'shapely' ); ?></h2>
+			<div class="nav-links">
+
+				<div class="nav-previous"><?php previous_comments_link( esc_html__( 'Older Comments', 'shapely' ) ); ?></div>
+				<div class="nav-next"><?php next_comments_link( esc_html__( 'Newer Comments', 'shapely' ) ); ?></div>
+
+			</div><!-- .nav-links -->
 		</nav><!-- #comment-nav-below -->
-		<?php endif; // check for comment navigation ?>
+		<?php
+		endif; // Check for comment navigation.
 
-	<?php endif; // have_comments() ?>
+	endif; // Check for have_comments().
 
+
+	// If comments are closed and there are comments, let's leave a little note, shall we?
+	if ( ! comments_open() && get_comments_number() && post_type_supports( get_post_type(), 'comments' ) ) : ?>
+
+		<p class="no-comments"><?php esc_html_e( 'Comments are closed.', 'shapely' ); ?></p>
 	<?php
-		// If comments are closed and there are comments, let's leave a little note, shall we?
-	if ( ! comments_open() && '0' != get_comments_number() && post_type_supports( get_post_type(), 'comments' ) ) :
+	endif;
+
+    /* comment form */
+    $comments_args = shapely_custom_comment_form();
+	comment_form($comments_args);
 	?>
-	<p class="no-comments"><?php esc_html_e( 'Comments are closed.', 'activello' ); ?></p>
-	<?php endif; ?>
-
-	<?php
-		$commenter = wp_get_current_commenter();
-		$req = get_option( 'require_name_email' );
-		$aria_req = ( $req ? " aria-required='true'" : '' );
-
-			$fields = array(
-				'author' => '<div class="row">' .
-			'<div class="col-sm-4"><input id="author" name="author" type="text" value="' . esc_attr( $commenter['comment_author'] ) .
-			'" size="30"' . $aria_req . ' placeholder="' . esc_attr__( 'Name', 'activello' ) . '" /></div>',
-
-				'email' =>
-			'<div class="col-sm-4"><input id="email" name="email" type="text" value="' . esc_attr( $commenter['comment_author_email'] ) .
-			'" size="30"' . $aria_req . ' placeholder="' . esc_attr__( 'Email', 'activello' ) . '" /></div>',
-
-				'url' =>
-			'<div class="col-sm-4"><input id="url" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) .
-			'" size="30" placeholder="' . esc_attr__( 'Website', 'activello' ) . '" /></div>' .
-			'</div>',
-			);
-
-	?>
-
-	<?php comment_form(
-		array(
-			'fields' => $fields,
-			'label_submit' => __( 'Post Reply', 'activello' ),
-			'comment_notes_before' => '',
-			'comment_field' => '<textarea id="comment" name="comment" cols="45" rows="8" aria-required="true" placeholder="' . esc_attr( _x( 'Comment', 'comment form placeholder', 'activello' ) ) . '"></textarea>',
-		)
-	); ?>
 
 </div><!-- #comments -->

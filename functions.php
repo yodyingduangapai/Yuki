@@ -1,222 +1,280 @@
 <?php
-/**
- * activello functions and definitions
- *
- * @package activello
- */
 
 /**
- * Set the content width based on the theme's design and stylesheet.
+ * Shapely functions and definitions.
+ *
+ * @link    https://developer.wordpress.org/themes/basics/theme-functions/
+ *
+ * @package Shapely
  */
-if ( ! isset( $content_width ) ) {
-	$content_width = 697; /* pixels */
+if ( ! function_exists( 'shapely_setup' ) ) :
+	/**
+	 * Sets up theme defaults and registers support for various WordPress features.
+	 *
+	 * Note that this function is hooked into the after_setup_theme hook, which
+	 * runs before the init hook. The init hook is too late for some features, such
+	 * as indicating support for post thumbnails.
+	 */
+	function shapely_setup() {
+		/*
+		 * Make theme available for translation.
+		 * Translations can be filed in the /languages/ directory.
+		 * If you're building a theme based on Shapely, use a find and replace
+		 * to change 'shapely' to the name of your theme in all the template files.
+		 */
+		load_theme_textdomain( 'shapely', get_template_directory() . '/languages' );
+
+		// Add default posts and comments RSS feed links to head.
+		add_theme_support( 'automatic-feed-links' );
+
+		/**
+		 * Add support for the custom logo functionality
+		 */
+		add_theme_support( 'custom-logo', array(
+			'height'     => 55,
+			'width'      => 135,
+			'flex-width' => true,
+		) );
+
+		add_theme_support( 'custom-header', apply_filters( 'shapely_custom_header_args', array(
+			'default-image'      => '',
+			'default-text-color' => '000000',
+			'width'              => 1900,
+			'height'             => 225,
+			'flex-width'         => true
+		) ) );
+
+		/*
+		 * Let WordPress manage the document title.
+		 * By adding theme support, we declare that this theme does not use a
+		 * hard-coded <title> tag in the document head, and expect WordPress to
+		 * provide it for us.
+		 */
+		add_theme_support( 'title-tag' );
+
+		/*
+		 * Enable support for Post Thumbnails on posts and pages.
+		 *
+		 * @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
+		 */
+		add_theme_support( 'post-thumbnails' );
+
+		// This theme uses wp_nav_menu() in one location.
+		register_nav_menus( array(
+			                    'primary'     => esc_html__( 'Primary', 'shapely' ),
+			                    'social-menu' => esc_html__( 'Social Menu', 'shapely' ),
+		                    ) );
+
+		/*
+		 * Switch default core markup for search form, comment form, and comments
+		 * to output valid HTML5.
+		 */
+		add_theme_support( 'html5', array(
+			'search-form',
+			'comment-form',
+			'comment-list',
+			'gallery',
+			'caption',
+		) );
+
+		// Set up the WordPress core custom background feature.
+		add_theme_support( 'custom-background', apply_filters( 'shapely_custom_background_args', array(
+			'default-color' => 'ffffff',
+			'default-image' => '',
+		) ) );
+
+		/**
+		 * Enable support for Post Thumbnails on posts and pages.
+		 *
+		 * @link http://codex.wordpress.org/Function_Reference/add_theme_support#Post_Thumbnails
+		 */
+		add_theme_support( 'post-thumbnails' );
+		add_image_size( 'shapely-full', 1110, 530, true );
+		add_image_size( 'shapely-featured', 730, 350, true );
+		add_image_size( 'shapely-grid', 350, 300, true );
+
+		add_theme_support( 'customize-selective-refresh-widgets' );
+		// Welcome screen
+		if ( is_admin() ) {
+			global $shapely_required_actions, $shapely_recommended_plugins;
+
+			$shapely_recommended_plugins = array(
+				'wordpress-seo'          => array( 'recommended' => true ),
+				'fancybox-for-wordpress' => array( 'recommended' => false ),
+			);
+
+			/*
+			 * id - unique id; required
+			 * title
+			 * description
+			 * check - check for plugins (if installed)
+			 * plugin_slug - the plugin's slug (used for installing the plugin)
+			 *
+			 */
+			$path = WPMU_PLUGIN_DIR . '/shapely-companion/inc/views/shapely-demo-content.php';
+			if ( ! file_exists( $path ) ) {
+				$path = WP_PLUGIN_DIR . '/shapely-companion/inc/views/shapely-demo-content.php';
+				if ( ! file_exists( $path ) ) {
+					$path = false;
+				}
+			}
+
+			$shapely_required_actions = array(
+				array(
+					"id"          => 'shapely-req-ac-install-companion-plugin',
+					"title"       => Shapely_Notify_System::shapely_companion_title(),
+					"description" => Shapely_Notify_System::shapely_companion_description(),
+					"check"       => Shapely_Notify_System::shapely_has_plugin( 'shapely-companion' ),
+					"plugin_slug" => 'shapely-companion'
+				),
+				array(
+					"id"          => 'shapely-req-ac-install-wp-jetpack-plugin',
+					"title"       => Shapely_Notify_System::shapely_jetpack_title(),
+					"description" => Shapely_Notify_System::shapely_jetpack_description(),
+					"check"       => Shapely_Notify_System::shapely_has_plugin( 'jetpack' ),
+					"plugin_slug" => 'jetpack'
+				),
+				array(
+					"id"       => 'shapely-req-import-content',
+					"title"    => esc_html__( 'Import content', 'shapely' ),
+					"external" => $path,
+					"check"    => Shapely_Notify_System::shapely_check_import_req(),
+				),
+
+			);
+
+			require get_template_directory() . '/inc/admin/welcome-screen/welcome-screen.php';
+		}
+	}
+endif;
+add_action( 'after_setup_theme', 'shapely_setup' );
+
+/**
+ * Set the content width in pixels, based on the theme's design and stylesheet.
+ *
+ * Priority 0 to make it available to lower priority callbacks.
+ *
+ * @global int $content_width
+ */
+function shapely_content_width() {
+	$GLOBALS['content_width'] = apply_filters( 'shapely_content_width', 1140 );
 }
 
+add_action( 'after_setup_theme', 'shapely_content_width', 0 );
+
 /**
- * Set the content width for full width pages with no sidebar.
- */
-if ( ! function_exists( 'activello_content_width' ) ) {
-	function activello_content_width() {
-		if ( is_page_template( 'page-fullwidth.php' ) ) {
-			  global $content_width;
-			  $content_width = 1008; /* pixels */
-		}
-	}
-}
-
-add_action( 'template_redirect', 'activello_content_width' );
-
-
-if ( ! function_exists( 'activello_main_content_bootstrap_classes' ) ) :
-	/**
- * Add Bootstrap classes to the main-content-area wrapper.
- */
-	function activello_main_content_bootstrap_classes() {
-		if ( is_page_template( 'page-fullwidth.php' ) ) {
-			return 'col-sm-12 col-md-12';
-		}
-		return 'col-sm-12 col-md-8';
-	}
-endif; // activello_main_content_bootstrap_classes
-
-if ( ! function_exists( 'activello_setup' ) ) :
-	/**
- * Sets up theme defaults and registers support for various WordPress features.
+ * Register widget area.
  *
- * Note that this function is hooked into the after_setup_theme hook, which
- * runs before the init hook. The init hook is too late for some features, such
- * as indicating support for post thumbnails.
+ * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
  */
-	function activello_setup() {
+function shapely_widgets_init() {
+	register_sidebar( array(
+		                  'id'            => 'sidebar-1',
+		                  'name'          => esc_html__( 'Sidebar', 'shapely' ),
+		                  'before_widget' => '<div id="%1$s" class="widget %2$s">',
+		                  'after_widget'  => '</div>',
+		                  'before_title'  => '<h2 class="widget-title">',
+		                  'after_title'   => '</h2>',
+	                  ) );
 
-		  /*
-		   * Make theme available for translation.
-		   * Translations can be filed in the /languages/ directory.
-		   */
-		  load_theme_textdomain( 'activello', get_template_directory() . '/languages' );
+	register_sidebar( array(
+		                  'id'            => 'sidebar-home',
+		                  'name'          => esc_html__( 'Homepage', 'shapely' ),
+		                  'before_widget' => '<div id="%1$s" class="widget %2$s">',
+		                  'after_widget'  => '</div>',
+		                  'before_title'  => '<h2 class="widget-title">',
+		                  'after_title'   => '</h2>',
+	                  ) );
 
-		  // Add default posts and comments RSS feed links to head.
-		  add_theme_support( 'automatic-feed-links' );
-
-		  /**
-   * Enable support for Post Thumbnails on posts and pages.
-   *
-   * @link http://codex.wordpress.org/Function_Reference/add_theme_support#Post_Thumbnails
-   */
-		  add_theme_support( 'post-thumbnails' );
-
-		  add_image_size( 'activello-featured', 1170, 550, true );
-		  add_image_size( 'activello-slider', 1920, 550, true );
-		  add_image_size( 'activello-thumbnail', 330, 220, true );
-		  add_image_size( 'activello-medium', 640, 480, true );
-		  add_image_size( 'activello-big', 710, 335, true );
-
-		  // This theme uses wp_nav_menu() in one location.
-		  register_nav_menus( array(
-			  'primary'      => esc_html__( 'Primary Menu', 'activello' ),
-		  ) );
-
-		  // Enable support for Post Formats.
-		  add_theme_support( 'post-formats', array(
-			  'video',
-			  'audio',
-		  ) );
-
-		  // Setup the WordPress core custom background feature.
-		  add_theme_support( 'custom-background', apply_filters( 'activello_custom_background_args', array(
-			  'default-color' => 'FFFFFF',
-			  'default-image' => '',
-		  ) ) );
-
-		  // Enable support for HTML5 markup.
-		  add_theme_support( 'html5', array(
-			  'comment-list',
-			  'search-form',
-			  'comment-form',
-			  'gallery',
-			  'caption',
-		  ) );
-
-		  // Enable Custom Logo
-		  add_theme_support( 'custom-logo', array(
-			  'height'      => 200,
-			  'width'       => 400,
-			  'flex-width' => true,
-		  ) );
-
-		  // Backwards compatibility for custom Logo
-		  $old_logo = get_theme_mod( 'header_logo' );
-		if ( $old_logo ) {
-				set_theme_mod( 'custom_logo', $old_logo );
-				remove_theme_mod( 'header_logo' );
-		}
-
-		  /*
-		   * Let WordPress manage the document title.
-		   * By adding theme support, we declare that this theme does not use a
-		   * hard-coded <title> tag in the document head, and expect WordPress to
-		   * provide it for us.
-		   */
-		  add_theme_support( 'title-tag' );
-
-		  // Backwards compatibility
-		  $custom_css = get_theme_mod( 'custom_css' );
-		if ( $custom_css ) {
-				wp_update_custom_css_post( $custom_css );
-				remove_theme_mod( 'custom_css' );
-		}
-
-	}
-endif; // activello_setup
-add_action( 'after_setup_theme', 'activello_setup' );
-
-/**
- * Register widgetized area and update sidebar with default widgets.
- */
-if ( ! function_exists( 'activello_widgets_init' ) ) {
-	function activello_widgets_init() {
+	for ( $i = 1; $i < 5; $i ++ ) {
 		register_sidebar( array(
-			'name'          => esc_html__( 'Sidebar', 'activello' ),
-			'id'            => 'sidebar-1',
-			'before_widget' => '<aside id="%1$s" class="widget %2$s">',
-			'after_widget'  => '</aside>',
-			'before_title'  => '<h3 class="widget-title">',
-			'after_title'   => '</h3>',
-		));
-
-		register_widget( 'Activello_Social_Widget' );
-		register_widget( 'Activello_Recent_Posts' );
-		register_widget( 'Activello_Categories' );
+			                  'id'            => 'footer-widget-' . $i,
+			                  'name'          => sprintf( esc_html__( 'Footer Widget %s', 'shapely' ), $i ),
+			                  'description'   => esc_html__( 'Used for footer widget area', 'shapely' ),
+			                  'before_widget' => '<div id="%1$s" class="widget %2$s">',
+			                  'after_widget'  => '</div>',
+			                  'before_title'  => '<h2 class="widget-title">',
+			                  'after_title'   => '</h2>',
+		                  ) );
 	}
+
 }
-add_action( 'widgets_init', 'activello_widgets_init' );
 
-
-/* --------------------------------------------------------------
-       Theme Widgets
--------------------------------------------------------------- */
-require_once( get_template_directory() . '/inc/widgets/class-activello-categories.php' );
-require_once( get_template_directory() . '/inc/widgets/class-activello-social-widget.php' );
-require_once( get_template_directory() . '/inc/widgets/class-activello-recent-posts.php' );
+add_action( 'widgets_init', 'shapely_widgets_init' );
 
 /**
- * This function removes inline styles set by WordPress gallery.
+ * Hides the custom post template for pages on WordPress 4.6 and older
+ *
+ * @param array $post_templates Array of page templates. Keys are filenames, values are translated names.
+ *
+ * @return array Filtered array of page templates.
  */
-if ( ! function_exists( 'activello_remove_gallery_css' ) ) {
-	function activello_remove_gallery_css( $css ) {
-		return preg_replace( "#<style type='text/css'>(.*?)</style>#s", '', $css );
+function shapely_exclude_page_templates( $post_templates ) {
+
+	if ( version_compare( $GLOBALS['wp_version'], '4.7', '<' ) ) {
+		unset( $post_templates['page-templates/full-width.php'] );
+		unset( $post_templates['page-templates/no-sidebar.php'] );
+		unset( $post_templates['page-templates/sidebar-left.php'] );
+		unset( $post_templates['page-templates/sidebar-right.php'] );
 	}
+
+	return $post_templates;
 }
 
-add_filter( 'gallery_style', 'activello_remove_gallery_css' );
+add_filter( 'theme_page_templates', 'shapely_exclude_page_templates' );
 
 /**
  * Enqueue scripts and styles.
  */
-if ( ! function_exists( 'activello_scripts' ) ) {
-	function activello_scripts() {
+function shapely_scripts() {
+	// Add Bootstrap default CSS
+	wp_enqueue_style( 'bootstrap', get_template_directory_uri() . '/inc/css/bootstrap.min.css' );
 
-		// Add Bootstrap default CSS
-		wp_enqueue_style( 'activello-bootstrap', get_template_directory_uri() . '/assets/css/bootstrap.min.css' );
+	// Add Font Awesome stylesheet
+	wp_enqueue_style( 'font-awesome', get_template_directory_uri() . '/inc/css/font-awesome.min.css' );
 
-		// Add Font Awesome stylesheet
-		wp_enqueue_style( 'activello-icons', get_template_directory_uri() . '/assets/css/font-awesome.min.css' );
+	// Add Google Fonts
+	wp_enqueue_style( 'shapely-fonts', '//fonts.googleapis.com/css?family=Raleway:100,300,400,500,600,700%7COpen+Sans:400,500,600' );
 
-		// Add Google Fonts
-		wp_enqueue_style( 'activello-fonts', '//fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic|Montserrat:400,700|Maven+Pro:400,700' );
 
-		// Add slider CSS only if is front page ans slider is enabled
-		if ( ( is_home() || is_front_page() ) && get_theme_mod( 'activello_featured_hide' ) == 1 ) {
-			wp_enqueue_style( 'flexslider-css', get_template_directory_uri() . '/assets/css/flexslider.css' );
-		}
+	// Add slider CSS
+	wp_enqueue_style( 'flexslider', get_template_directory_uri() . '/inc/css/flexslider.css' );
 
-		// Add main theme stylesheet
-		wp_enqueue_style( 'activello-style', get_stylesheet_uri() );
+	//Add custom theme css
+	wp_enqueue_style( 'shapely-style', get_stylesheet_uri() );
 
-		// Add Modernizr for better HTML5 and CSS3 support
-		wp_enqueue_script( 'activello-modernizr', get_template_directory_uri() . '/assets/js/vendor/modernizr.min.js', array( 'jquery' ) );
+	wp_enqueue_script( 'shapely-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20120206', true );
 
-		// Add Bootstrap default JS
-		wp_enqueue_script( 'activello-bootstrapjs', get_template_directory_uri() . '/assets/js/vendor/bootstrap.min.js', array( 'jquery' ) );
+	wp_enqueue_script( 'shapely-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20160115', true );
 
-		// Add slider JS only if is front page ans slider is enabled
-		if ( ( is_home() || is_front_page() ) && get_theme_mod( 'activello_featured_hide' ) == 1 ) {
-			wp_register_script( 'flexslider-js', get_template_directory_uri() . '/assets/js/vendor/flexslider.min.js', array( 'jquery' ), '20140222', true );
-		}
-
-		// Main theme related functions
-		wp_enqueue_script( 'activello-functions', get_template_directory_uri() . '/assets/js/functions.min.js', array( 'jquery' ) );
-
-		// This one is for accessibility
-		wp_enqueue_script( 'activello-skip-link-focus-fix', get_template_directory_uri() . '/assets/js/skip-link-focus-fix.js', array(), '20140222', true );
-
-		// Threaded comments
-		if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
-			wp_enqueue_script( 'comment-reply' );
-		}
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
 	}
-}// End if().
-add_action( 'wp_enqueue_scripts', 'activello_scripts' );
+
+
+	if ( post_type_exists( 'jetpack-portfolio' ) ) {
+		wp_enqueue_script( 'jquery-masonry' );
+	}
+
+	// Add slider JS
+	wp_enqueue_script( 'flexslider', get_template_directory_uri() . '/js/flexslider.min.js', array( 'jquery' ), '20160222', true );
+
+	if ( is_page_template( 'page-templates/template-home.php' ) ) {
+		wp_enqueue_script( 'shapely-parallax', get_template_directory_uri() . '/js/parallax.min.js', array( 'jquery' ), '20160115', true );
+	}
+	/**
+	 * OwlCarousel Library
+	 */
+	wp_enqueue_script( 'owl.carousel', get_template_directory_uri() . '/js/owl-carousel/owl.carousel.min.js', array( 'jquery' ), '20160115', true );
+	wp_enqueue_style( 'owl.carousel', get_template_directory_uri() . '/js/owl-carousel/owl.carousel.min.css' );
+	wp_enqueue_style( 'owl.carousel.theme', get_template_directory_uri() . '/js/owl-carousel/owl.theme.default.css' );
+
+	wp_enqueue_script( 'shapely-scripts', get_template_directory_uri() . '/js/shapely-scripts.js', array( 'jquery' ), '20160115', true );
+
+	wp_enqueue_style( 'shapely-scss', get_template_directory_uri() . '/assets/css/style.css' );
+}
+
+add_action( 'wp_enqueue_scripts', 'shapely_scripts' );
 
 /**
  * Custom template tags for this theme.
@@ -227,6 +285,11 @@ require get_template_directory() . '/inc/template-tags.php';
  * Custom functions that act independently of the theme templates.
  */
 require get_template_directory() . '/inc/extras.php';
+
+/**
+ * Add custom section
+ */
+require get_template_directory() . '/inc/shapely-documentation/class-customize.php';
 
 /**
  * Customizer additions.
@@ -241,111 +304,19 @@ require get_template_directory() . '/inc/jetpack.php';
 /**
  * Load custom nav walker
  */
-require get_template_directory() . '/inc/class-activello-wp-bootstrap-navwalker.php';
+require get_template_directory() . '/inc/navwalker.php';
 
 /**
- * Load custom metabox
- */
-require get_template_directory() . '/inc/metaboxes.php';
-
-/**
- * Social Nav Menu
+ * Load Social Navition
  */
 require get_template_directory() . '/inc/socialnav.php';
 
-/* Globals */
-global $site_layout, $header_show;
-$site_layout = array(
-	'pull-right' => esc_html__( 'Left Sidebar','activello' ),
-	'side-right' => esc_html__( 'Right Sidebar','activello' ),
-	'no-sidebar' => esc_html__( 'No Sidebar','activello' ),
-	'full-width' => esc_html__( 'Full Width', 'activello' ),
-);
-$header_show = array(
-	'logo-only' => __( 'Logo Only', 'activello' ),
-	'logo-text' => __( 'Logo + Tagline', 'activello' ),
-	'title-only' => __( 'Title Only', 'activello' ),
-	'title-text' => __( 'Title + Tagline', 'activello' ),
-);
-
-if ( ! function_exists( 'activello_get_single_category' ) ) :
-	/* Get Single Post Category */
-	function activello_get_single_category( $post_id ) {
-
-		if ( ! $post_id ) {
-			return '';
-		}
-
-		$post_categories = wp_get_post_categories( $post_id );
-		$show_one_category = get_theme_mod( 'activello_categories', 0 );
-
-		if ( ! empty( $post_categories ) ) {
-			if ( ! $show_one_category && count( $post_categories ) > 1 ) {
-				$extra_categories = array_slice( $post_categories, 1, count( $post_categories ) -1, true );
-				$extra_categories_args = array(
-					'echo' => 0,
-					'title_li' => '',
-					'show_count' => 0,
-					'include' => $extra_categories,
-				);
-				$html = '<div class="activello-categories">';
-				$html .= '<ul class="single-category">' . wp_list_categories( 'echo=0&title_li=&show_count=0&include=' . $post_categories[0] ) . '<li class="show-more-categories">...<ul class="subcategories">' . wp_list_categories( $extra_categories_args ) . '</ul><li></ul>';
-				$html .= '</div>';
-				return $html;
-			} else {
-				return '<ul class="single-category">' . wp_list_categories( 'echo=0&title_li=&show_count=0&include=' . $post_categories[0] ) . '</ul>';
-			}
-		}
-		return '';
-	}
-endif;
-
-if ( ! function_exists( 'activello_woo_setup' ) ) :
-	/**
- * Sets up theme defaults and registers support for various WordPress features.
+/**
+ * Load related posts
  */
-	function activello_woo_setup() {
-		/*
-		 * Enable support for WooCemmerce.
-		*/
-		add_theme_support( 'woocommerce' );
+require get_template_directory() . '/inc/class-shapely-related-posts.php';
 
-		  /*
-		   * Enable support for WooCemmerce Lightbox & Zoom.
-		  */
-		  add_theme_support( 'wc-product-gallery-zoom' );
-		  add_theme_support( 'wc-product-gallery-lightbox' );
-		  add_theme_support( 'wc-product-gallery-slider' );
-
-	}
-endif; // activello_woo_setup
-add_action( 'after_setup_theme', 'activello_woo_setup' );
-
-/*
- * Function to modify search template for header
+/**
+ * Load the system checks ( used for notifications )
  */
-if ( ! function_exists( 'activello_header_search_filter' ) ) {
-	function activello_header_search_filter( $form ) {
-		$form = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get"><input type="text" name="s" value="' . get_search_query() . '" placeholder="' . esc_attr_x( 'Search', 'search placeholder', 'activello' ) . '"><button type="submit" class="header-search-icon" name="submit" id="searchsubmit" value="' . esc_attr_x( 'Search', 'submit button', 'activello' ) . '"><i class="fa fa-search"></i></button></form>';
-		return $form;
-	}
-}
-
-// Include Epsilon Framework
-require_once 'inc/libraries/epsilon-framework/class-epsilon-autoloader.php';
-$args = array(
-	'controls' => array( 'toggle' ), // array of controls to load
-	'sections' => array( 'recommended-actions', 'pro' ), // array of sections to load
-);
-
-new Epsilon_Framework( $args );
-
-// Add welcome screen
-require get_template_directory() . '/inc/welcome-screen/welcome-page-setup.php';
-// require get_template_directory() . '/inc/class-activello-nux-admin.php';
-
-if ( ! function_exists( 'wp_body_open' ) ) {
-    function wp_body_open() {
-        do_action( 'wp_body_open' );
-    }
-}
+require get_template_directory() . '/inc/admin/welcome-screen/notify-system-checks.php';

@@ -2,30 +2,46 @@
 /**
  * The template for displaying the footer.
  *
- * Contains the closing of the #content div and all content after
+ * Contains the closing of the #content div and all content after.
  *
- * @package activello
+ * @link    https://developer.wordpress.org/themes/basics/template-files/#template-partials
+ *
+ * @package Shapely
  */
-?>
-				</div><!-- close .*-inner (main-content or sidebar, depending if sidebar is used) -->
-			</div><!-- close .row -->
-		</div><!-- close .container -->
-	</div><!-- close .site-content -->
 
-	<div id="footer-area">
-		<footer id="colophon" class="site-footer" role="contentinfo">
-			<div class="site-info container">
-				<div class="row">
-					<?php if ( ! get_theme_mod( 'footer_social' ) ) { activello_social_icons();} ?>
-					<div class="copyright col-md-12">
-						<?php echo esc_html( get_theme_mod( 'activello_footer_copyright', 'Activello' ) ); ?>
-						<?php activello_footer_info(); ?>
-					</div>
+?>
+
+</div><!-- #main -->
+</section><!-- section -->
+
+<div class="footer-callout">
+	<?php shapely_footer_callout(); ?>
+</div>
+
+<footer id="colophon" class="site-footer footer bg-dark" role="contentinfo">
+	<div class="container footer-inner">
+		<div class="row">
+			<?php get_sidebar( 'footer' ); ?>
+		</div>
+
+		<div class="row">
+			<div class="site-info col-sm-6">
+				<div class="copyright-text">
+					<?php echo wp_kses_post( get_theme_mod( 'shapely_footer_copyright' ) ); ?>
+				</div>
+				<div class="footer-credits">
+					<?php shapely_footer_info(); ?>
 				</div>
 			</div><!-- .site-info -->
-			<button class="scroll-to-top"><i class="fa fa-angle-up"></i></button><!-- .scroll-to-top -->
-		</footer><!-- #colophon -->
+			<div class="col-sm-6 text-right">
+				<?php shapely_social_icons(); ?>
+			</div>
+		</div>
 	</div>
+
+	<a class="btn btn-sm fade-half back-to-top inner-link" href="#top"><i class="fa fa-angle-up"></i></a>
+</footer><!-- #colophon -->
+</div>
 </div><!-- #page -->
 
 <?php wp_footer(); ?>

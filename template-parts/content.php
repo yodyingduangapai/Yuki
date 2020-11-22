@@ -1,104 +1,130 @@
 <?php
 /**
- * @package activello
+ * Template part for displaying posts.
+ *
+ * @link    https://codex.wordpress.org/Template_Hierarchy
+ *
+ * @package Shapely
  */
 
-
-global $wp_query;
-$index = $wp_query->current_post + 1;
-$layout = get_theme_mod( 'activello_sidebar_position' );
-$blog_layout = get_theme_mod( 'activello_blog_layout', 'default' );
-
-$image_size = 'activello-big';
-if ( $index > 2 && is_home() && 'default' == $blog_layout ) {
-	if ( 'full-width' == $layout ) {
-		$image_size = 'activello-medium';
-	} else {
-		$image_size = 'activello-thumbnail';
-	}
-} elseif ( 'full-width' == $layout ) {
-	$image_size = 'activello-featured';
-}
-
+$dropcaps    = get_theme_mod( 'first_letter_caps', true );
+$enable_tags = get_theme_mod( 'tags_post_meta', true );
+$post_author = get_theme_mod( 'post_author_area', true );
+$left_side   = get_theme_mod( 'post_author_left_side', false );
 
 ?>
+<article id="post-<?php the_ID(); ?>" <?php post_class('post-content post-grid-wide'); ?>>
+	<header class="entry-header nolist">
+		<?php
+		$category = get_the_category();
+		if ( has_post_thumbnail() ) {
+			$layout = shapely_get_layout_class();
+			$size   = 'shapely-featured';
 
-<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-	<div class="blog-item-wrap">
-		<div class="post-inner-content">
-			<header class="entry-header page-header">
-				<?php echo activello_get_single_category( get_the_ID() ); ?>
-				<h2 class="entry-title"><a href="<?php the_permalink(); ?>" rel="bookmark"><?php the_title(); ?></a></h2>
+			if ( $layout == 'full-width' ) {
+				$size = 'shapely-full';
+			}
+			$image = get_the_post_thumbnail( get_the_ID(), $size );
 
-				<?php if ( 'post' == get_post_type() ) : ?>
-				<div class="entry-meta">
-					<?php activello_posted_on(); ?>
+		$allowed_tags = array(
+			'img'      => array(
+				'data-srcset' => true,
+				'data-src'    => true,
+				'srcset'      => true,
+				'sizes'       => true,
+				'src'         => true,
+				'class'       => true,
+				'alt'         => true,
+				'width'       => true,
+				'height'      => true
+			),
+			'noscript' => array()
+		);
+		?>
+		<a href="<?php echo esc_url( get_the_permalink() ); ?>">
+			<?php echo wp_kses( $image, $allowed_tags ); ?>
+		</a>
 
-					<?php
-						edit_post_link(
-							sprintf(
-								/* translators: %s: Name of current post */
-								esc_html__( 'Edit %s', 'activello' ),
-								the_title( '<span class="screen-reader-text">"', '"</span>', false )
-							),
-							'<span class="edit-link">',
-							'</span>'
-						);
-					?>
+		<?php if ( isset( $category[0] ) ): ?>
+			<span class="shapely-category">
+				<a href="<?php echo esc_url( get_category_link( $category[0]->term_id ) ); ?>">
+					<?php echo esc_html( $category[0]->name ); ?>
+				</a>
+			</span>
+		<?php endif; ?>
+		<?php } ?>
+	</header><!-- .entry-header -->
+	<div class="entry-content">
+		<h2 class="post-title">
+			<a href="<?php echo esc_url( get_the_permalink() ); ?>"><?php echo wp_trim_words( get_the_title(), 9 ); ?></a>
+		</h2>
 
-				</div><!-- .entry-meta -->
-				<?php endif; ?>
-			</header><!-- .entry-header -->
-
-			<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>" >
-				<?php
-					$thumbnail_args = array(
-						'class' => 'single-featured',
-					);
-					the_post_thumbnail( $image_size, $thumbnail_args );
-				?>
-			</a>
-
-			<?php if ( is_search() ) : // Only display Excerpts for Search ?>
-			<div class="entry-summary">
-				<?php the_excerpt(); ?>
-				<p><a class="btn btn-default read-more" href="<?php the_permalink(); ?>"><?php esc_html_e( 'Read More', 'activello' ); ?></a></p>
-			</div><!-- .entry-summary -->
-			<?php else : ?>
-			<div class="entry-content">
-
-				<?php
-				if ( get_theme_mod( 'activello_excerpts', 1 ) && '' != get_the_excerpt() ) :
-					the_excerpt();
-				else :
-					the_content();
-				endif;
-			?>
-
-				<?php
-				wp_link_pages( array(
-					'before'            => '<div class="page-links">' . esc_html__( 'Pages:', 'activello' ),
-					'after'             => '</div>',
-					'link_before'       => '<span>',
-					'link_after'        => '</span>',
-					'pagelink'          => '%',
-					'echo'              => 1,
-				) );
-				?>
-
-				<?php if ( ! is_single() && get_theme_mod( 'activello_excerpts', 1 ) ) : ?>
-				<div class="read-more">
-					<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>"><?php esc_html_e( 'Read More', 'activello' ); ?></a>
-				</div>
-				<?php endif; ?>
-
-				<?php if ( ! post_password_required() && ( comments_open() || '0' != get_comments_number() ) ) : ?>
-					<div class="entry-footer">
-						<span class="comments-link"><?php comments_popup_link( esc_html__( 'No comments yet', 'activello' ), esc_html__( '1 Comment', 'activello' ), esc_html__( '% Comments', 'activello' ) ); ?></span>
-					</div><!-- .entry-footer -->
-				<?php endif; ?>
-			</div><!-- .entry-content -->
-			<?php endif; ?>
+		<div class="entry-meta">
+			<?php
+			shapely_posted_on_no_cat(); ?><!-- post-meta -->
 		</div>
-	</div>
-</article><!-- #post-## -->
+
+		<?php if ( $post_author && $left_side ): ?>
+			<div class="row">
+				<div class="col-md-3 col-xs-12 author-bio-left-side">
+					<?php
+					shapely_author_bio();
+					?>
+				</div>
+				<div class="col-md-9 col-xs-12 shapely-content <?php echo $dropcaps ? 'dropcaps-content' : ''; ?>">
+					<?php
+					the_content();
+
+					wp_link_pages( array(
+						               'before' => '<div class="page-links">' . esc_html__( 'Pages:', 'shapely' ),
+						               'after'  => '</div>',
+					               ) );
+					?>
+				</div>
+			</div>
+		<?php else: ?>
+			<div class="shapely-content <?php echo $dropcaps ? 'dropcaps-content' : ''; ?>">
+				<?php
+				the_content();
+
+				wp_link_pages( array(
+					               'before' => '<div class="page-links">' . esc_html__( 'Pages:', 'shapely' ),
+					               'after'  => '</div>',
+				               ) );
+				?>
+			</div>
+		<?php endif; ?>
+	</div><!-- .entry-content -->
+
+	<?php
+	if ( is_single() ):
+		$prev = get_previous_post_link();
+		$prev = str_replace( '&laquo;', '<div class="wrapper"><span class="fa fa-angle-left"></span>', $prev );
+		$prev = str_replace( '</a>', '</a></div>', $prev );
+		$next = get_next_post_link();
+		$next = str_replace( '&raquo;', '<span class="fa fa-angle-right"></span></div>', $next );
+		$next = str_replace( '<a', '<div class="wrapper"><a', $next );
+		?>
+		<div class="shapely-next-prev row">
+			<div class="col-md-6 text-left">
+				<?php echo wp_kses_post( $prev ) ?>
+			</div>
+			<div class="col-md-6 text-right">
+				<?php echo wp_kses_post( $next ) ?>
+			</div>
+		</div>
+
+		<?php
+		if ( $post_author && ! $left_side ):
+			shapely_author_bio();
+		endif;
+
+		if ( $enable_tags ):
+			$tags_list = get_the_tag_list( '', ' ' );
+			echo ! empty( $tags_list ) ? '<div class="shapely-tags"><span class="fa fa-tags"></span>' . $tags_list . '</div>' : '';
+		endif;
+		?>
+
+		<?php do_action( 'shapely_single_after_article' ); ?>
+	<?php endif; ?>
+</article>
